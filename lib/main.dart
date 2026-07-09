@@ -10,12 +10,22 @@ import 'screens/profile_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/trends_screen.dart';
 import 'screens/subscription_screen.dart';
+import 'dart:io';
 import 'package:local_auth/local_auth.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 
 import 'utils/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  if (Platform.isAndroid) {
+    // Using the API key from RevenueCat dashboard
+    await Purchases.configure(PurchasesConfiguration("goog_KPAqpSKxxnuITegbUSXkexbuVwF"));
+  } else if (Platform.isIOS) {
+    await Purchases.configure(PurchasesConfiguration("appl_PLACEHOLDER_KEY"));
+  }
   
   // Initialize Firebase safely
   try {
@@ -48,9 +58,14 @@ class FitnessTrackerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Fitness Leveling',
-      debugShowCheckedModeBanner: false,
+    return ScreenUtilInit(
+      designSize: const Size(375, 812), // Standard iPhone X / 11 Pro size for design
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return MaterialApp(
+          title: 'Fitness Leveling',
+          debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.light,
         scaffoldBackgroundColor: const Color(0xFFF8F9FA),
@@ -93,18 +108,34 @@ class FitnessTrackerApp extends StatelessWidget {
       ),
       home: Consumer<FitnessProvider>(
         builder: (context, provider, child) {
+          debugPrint("============== MAIN NAVIGATION TRACE ==============");
+          debugPrint("1. isInitialized: ${provider.isInitialized}");
+          debugPrint("2. hasSeenOnboarding: ${provider.hasSeenOnboarding}");
+          debugPrint("3. isLoggedIn: ${provider.isLoggedIn}");
+          debugPrint("4. isPremium: ${provider.isPremium}");
+          
           if (!provider.isInitialized) {
+            debugPrint("-> Routing to: CircularProgressIndicator (Not Initialized)");
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
           }
           if (!provider.hasSeenOnboarding) {
+            debugPrint("-> Routing to: OnboardingScreen (hasSeenOnboarding is false)");
             return const OnboardingScreen();
           }
           if (!provider.isLoggedIn) {
+            debugPrint("-> Routing to: LoginScreen (isLoggedIn is false)");
             return const LoginScreen();
           }
+          if (!provider.isPremium) {
+            debugPrint("-> Routing to: SubscriptionScreen (isPremium is false)");
+            return const SubscriptionScreen();
+          }
+          debugPrint("-> Routing to: MainNavigationScreen (App is fully unlocked)");
           return const AppLockWrapper(child: MainNavigationScreen());
         },
       ),
+    );
+      },
     );
   }
 }
@@ -139,6 +170,8 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _authenticateIfNeeded();
+      final provider = Provider.of<FitnessProvider>(context, listen: false);
+      provider.autoFetchGoogleFitSteps();
     } else if (state == AppLifecycleState.paused) {
       final provider = Provider.of<FitnessProvider>(context, listen: false);
       if (provider.isAppLockEnabled) {
@@ -169,30 +202,14 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
   Widget build(BuildContext context) {
     final provider = Provider.of<FitnessProvider>(context);
     if (provider.isAppLockEnabled && !provider.isAuthenticated) {
-      return Scaffold(
-        backgroundColor: const Color(0xFF0D1321),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.lock_outline, size: 80, color: Colors.cyanAccent),
-              const SizedBox(height: 20),
-              const Text(
-                'App Locked',
-                style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 40),
-              ElevatedButton.icon(
-                onPressed: _authenticateIfNeeded,
-                icon: const Icon(Icons.fingerprint, color: Colors.black),
-                label: const Text('Unlock', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.cyanAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                ),
-              ),
-            ],
-          ),
+      // Return a blank screen to hide app content. 
+      // The native fingerprint prompt is automatically shown on startup/resume.
+      // If the user dismisses the native prompt, tapping the screen will show it again.
+      return GestureDetector(
+        onTap: _authenticateIfNeeded,
+        child: const Scaffold(
+          backgroundColor: Color(0xFF061121), // Dark app theme background
+          body: SizedBox.expand(),
         ),
       );
     }

@@ -1,13 +1,10 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/fitness_provider.dart';
 import 'personal_records_screen.dart';
 import 'connected_accounts_screen.dart';
-import 'settings_screen.dart';
 import 'notification_settings_screen.dart';
 import 'security_settings_screen.dart';
-import 'subscription_screen.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -27,8 +24,10 @@ class ProfileScreen extends StatelessWidget {
             children: [
               // Dark Tech Grid Background
               Positioned.fill(
-                child: CustomPaint(
-                  painter: _GridPainter(),
+                child: RepaintBoundary(
+                  child: CustomPaint(
+                    painter: _GridPainter(),
+                  ),
                 ),
               ),
               // The White/Cream curved bottom background
@@ -45,8 +44,10 @@ class ProfileScreen extends StatelessWidget {
                       topRight: Radius.circular(50),
                     ),
                   ),
-                  child: CustomPaint(
-                    painter: _LightGridPainter(),
+                  child: RepaintBoundary(
+                    child: CustomPaint(
+                      painter: _LightGridPainter(),
+                    ),
                   ),
                 ),
               ),
@@ -59,18 +60,10 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     _buildProfileHeader(provider),
                     const SizedBox(height: 24),
-                    if (!provider.isPremium) ...[
-                      _buildUpgradeButton(context),
-                      const SizedBox(height: 24),
-                    ],
                     _buildJourneyStatusCard(completedDays, totalDays, streak),
                     const SizedBox(height: 24),
                     _buildMenuOption(context, Icons.workspace_premium_outlined, "Personal Records", onTap: () {
-                      if (!provider.isPremium) {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionScreen()));
-                      } else {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const PersonalRecordsScreen()));
-                      }
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const PersonalRecordsScreen()));
                     }),
                     const SizedBox(height: 10),
                     _buildMenuOption(context, Icons.link, "Connected Accounts", showGoogle: true, onTap: () {
@@ -80,19 +73,8 @@ class ProfileScreen extends StatelessWidget {
                       );
                     }),
                     const SizedBox(height: 10),
-                    _buildMenuOption(context, Icons.settings_outlined, "App Settings", onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                      );
-                    }),
-                    const SizedBox(height: 10),
                     _buildMenuOption(context, Icons.notifications_none, "Notification Center", onTap: () {
-                      if (!provider.isPremium) {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionScreen()));
-                      } else {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationSettingsScreen()));
-                      }
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationSettingsScreen()));
                     }),
                     const SizedBox(height: 10),
                     _buildMenuOption(context, Icons.lock_outline, "Security & Privacy", onTap: () {
@@ -146,7 +128,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: ClipOval(
                 child: Image.asset(
-                  'assets/images/profile_avatar.png',
+                  'assets/images/profile_avatar.webp',
                   fit: BoxFit.cover,
                 ),
               ),
@@ -565,42 +547,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildUpgradeButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionScreen()));
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF00FF87).withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF00FF87).withOpacity(0.5)),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF00FF87).withOpacity(0.2),
-              blurRadius: 15,
-            )
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.workspace_premium, color: Color(0xFF00FF87)),
-            const SizedBox(width: 10),
-            const Text(
-              'UPGRADE TO ELITE',
-              style: TextStyle(
-                color: Color(0xFF00FF87),
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.5,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 }
 
 // Background Tech Grid Painter

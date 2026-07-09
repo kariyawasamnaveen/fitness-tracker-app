@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/fitness_provider.dart';
 import 'package:local_auth/local_auth.dart';
+import 'legal_document_viewer.dart';
+import '../utils/legal_texts.dart';
 
 class SecuritySettingsScreen extends StatelessWidget {
   const SecuritySettingsScreen({super.key});
@@ -44,22 +46,16 @@ class SecuritySettingsScreen extends StatelessWidget {
     }
   }
 
-  void _showDummyPolicy(BuildContext context, String title) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E2746),
-        title: Text(title, style: const TextStyle(color: Colors.cyanAccent)),
-        content: const Text(
-          'This is a placeholder for your legal documents. You can replace this with a URL launcher to open your website.',
-          style: TextStyle(color: Colors.white),
+  void _showPolicy(BuildContext context, String title) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LegalDocumentViewer(
+          title: title,
+          content: title == 'Privacy Policy'
+              ? LegalTexts.privacyPolicy
+              : LegalTexts.termsOfService,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close', style: TextStyle(color: Colors.cyanAccent)),
-          ),
-        ],
       ),
     );
   }
@@ -158,7 +154,7 @@ class SecuritySettingsScreen extends StatelessWidget {
                     _buildListTile(
                       title: 'Privacy Policy',
                       icon: Icons.privacy_tip_outlined,
-                      onTap: () => _showDummyPolicy(context, 'Privacy Policy'),
+                      onTap: () => _showPolicy(context, 'Privacy Policy'),
                     ),
                     const SizedBox(height: 12),
                     
@@ -166,7 +162,7 @@ class SecuritySettingsScreen extends StatelessWidget {
                     _buildListTile(
                       title: 'Terms of Service',
                       icon: Icons.description_outlined,
-                      onTap: () => _showDummyPolicy(context, 'Terms of Service'),
+                      onTap: () => _showPolicy(context, 'Terms of Service'),
                     ),
                   ],
                 );
@@ -219,7 +215,7 @@ class SecuritySettingsScreen extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: Colors.cyanAccent,
+            activeThumbColor: Colors.cyanAccent,
             activeTrackColor: Colors.cyanAccent.withOpacity(0.3),
             inactiveThumbColor: Colors.white54,
             inactiveTrackColor: Colors.white10,

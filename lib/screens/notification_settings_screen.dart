@@ -17,8 +17,7 @@ class NotificationSettingsScreen extends StatelessWidget {
               onPrimary: Colors.black,
               surface: Color(0xFF1E2746),
               onSurface: Colors.white,
-            ),
-            dialogBackgroundColor: const Color(0xFF0D1321),
+            ), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF0D1321)),
           ),
           child: child!,
         );
@@ -206,7 +205,7 @@ class NotificationSettingsScreen extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: Colors.cyanAccent,
+            activeThumbColor: Colors.cyanAccent,
             activeTrackColor: Colors.cyanAccent.withOpacity(0.3),
             inactiveThumbColor: Colors.white54,
             inactiveTrackColor: Colors.white10,

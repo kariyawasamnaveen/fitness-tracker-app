@@ -266,7 +266,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: DropdownButtonFormField<String>(
-        value: items.contains(value) ? value : null,
+        initialValue: items.contains(value) ? value : null,
         onChanged: onChanged,
         dropdownColor: const Color(0xFF1E2746),
         style: const TextStyle(color: Colors.white),

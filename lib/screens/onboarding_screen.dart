@@ -78,7 +78,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               },
               blendMode: BlendMode.dstIn,
               child: Image.asset(
-                "assets/images/onboarding_1.png",
+                "assets/images/onboarding_1.webp",
                 fit: BoxFit.cover,
               ),
             ),
@@ -136,7 +136,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             },
             blendMode: BlendMode.dstIn,
             child: Image.asset(
-              "assets/images/onboarding_2.png",
+              "assets/images/onboarding_2.webp",
               fit: BoxFit.cover,
             ),
           ),
@@ -227,7 +227,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             },
             blendMode: BlendMode.dstIn,
             child: Image.asset(
-              "assets/images/onboarding_3.png",
+              "assets/images/onboarding_3.webp",
               fit: BoxFit.cover,
             ),
           ),

@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:health/health.dart';
+import 'package:flutter/services.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import '../utils/date_utility.dart';
 import '../utils/notification_service.dart';
 
@@ -42,8 +44,8 @@ class FitnessProvider with ChangeNotifier {
   int _bestStreak = 0;
   String _userName = "ATHLETE";
   String _userEmail = "";
-  int _maxSquats = 0;
-  int _maxPushups = 0;
+  final int _maxSquats = 0;
+  final int _maxPushups = 0;
 
   // Advanced Profile Info
   String _gender = 'Not Specified';
@@ -270,11 +272,24 @@ class FitnessProvider with ChangeNotifier {
         if (data['is_premium'] != null) {
           _isPremium = data['is_premium'];
         }
+        debugPrint("Cloud Fetch: Success! hasSeenOnboarding=$_hasSeenOnboarding, isPremium=$_isPremium");
         _updateBestStreak();
       } else {
         // New user, sync initial defaults to cloud
+        debugPrint("Cloud Fetch: No existing doc found. Syncing local defaults to cloud...");
         await _syncToCloud();
       }
+
+      // Auto-fetch steps on startup/login if Google Fit is connected
+      if (_isGoogleFitConnected) {
+        autoFetchGoogleFitSteps();
+      }
+
+      // Premium bypass for Google Reviewer test account
+      if (_userEmail == 'athlete@elite.com') {
+        _isPremium = true;
+      }
+
       notifyListeners();
     } catch (e) {
       debugPrint("Error fetching from cloud: $e");
@@ -283,9 +298,11 @@ class FitnessProvider with ChangeNotifier {
 
   Future<void> _init() async {
     final prefs = await SharedPreferences.getInstance();
+    debugPrint("========== PROVIDER INIT START ==========");
     
     // Load onboarding state locally first as fallback
     _hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
+    debugPrint("Init: Local _hasSeenOnboarding = $_hasSeenOnboarding");
     
     // Load notification preferences
     _motivationEnabled = prefs.getBool('motivation_enabled') ?? false;
@@ -324,6 +341,7 @@ class FitnessProvider with ChangeNotifier {
         _completedDays.clear();
         _startDate = DateTime.now();
         _bestStreak = 0;
+        _isPremium = false;
         notifyListeners();
       } else {
         _isLoggedIn = true;
@@ -333,6 +351,11 @@ class FitnessProvider with ChangeNotifier {
         // Check if Google is linked
         _isGoogleLinked = user.providerData.any((userInfo) => userInfo.providerId == 'google.com');
         
+        // Premium bypass for Google Reviewer test account
+        if (_userEmail == 'athlete@elite.com') {
+          _isPremium = true;
+        }
+        
         notifyListeners(); // Broadcast login state immediately for fast UI navigation
         
         // Fetch real progress from Firestore!
@@ -340,7 +363,36 @@ class FitnessProvider with ChangeNotifier {
       }
     });
 
+    // Wait for the initial auth state before showing the app
+    debugPrint("Init: Waiting for initial Firebase auth state...");
+    final initialUser = await FirebaseAuth.instance.authStateChanges().first;
+    debugPrint("Init: initialUser = ${initialUser?.uid}");
+    
+    if (initialUser != null) {
+      _isLoggedIn = true;
+      _isGoogleLinked = initialUser.providerData.any((userInfo) => userInfo.providerId == 'google.com');
+      debugPrint("Init: User logged in, fetching from cloud...");
+      await _fetchFromCloud(initialUser);
+    }
+    
+    // Check RevenueCat CustomerInfo
+    try {
+      final customerInfo = await Purchases.getCustomerInfo();
+      if (customerInfo.entitlements.all['elite']?.isActive == true) {
+        _isPremium = true;
+      }
+    } catch (e) {
+      debugPrint("Error checking RevenueCat customer info: $e");
+    }
+
+    // Premium bypass for Google Reviewer test account
+    if (_userEmail == 'athlete@elite.com') {
+      _isPremium = true;
+    }
+
     _isInitialized = true;
+    debugPrint("Init: DONE. isInitialized = true, calling notifyListeners()");
+    debugPrint("===========================================");
     notifyListeners();
   }
 
@@ -669,6 +721,22 @@ class FitnessProvider with ChangeNotifier {
     }
   }
 
+  Future<void> autoFetchGoogleFitSteps() async {
+    if (!_isGoogleFitConnected) return;
+    try {
+      debugPrint("[DEBUG] Auto-fetching Google Fit steps...");
+      _health.configure();
+      bool hasPermissions = await _health.requestAuthorization([HealthDataType.STEPS]);
+      if (hasPermissions) {
+        await _fetchTodaySteps();
+      } else {
+        debugPrint("[DEBUG] Auto-fetch failed: permission not granted or revoked.");
+      }
+    } catch (e) {
+      debugPrint("[DEBUG] Error auto-fetching steps: $e");
+    }
+  }
+
   Future<void> _fetchTodaySteps() async {
     if (!_isGoogleFitConnected) return;
     
@@ -728,4 +796,39 @@ class FitnessProvider with ChangeNotifier {
   int get joggingRounds => DateUtility.calculateJoggingRounds(totalCompletedDays);
   int get sprintsCount => DateUtility.calculateSprints(totalCompletedDays);
   int get jumpingJacksCount => DateUtility.getJumpingJacks();
+  Future<bool> restorePurchases() async {
+    try {
+      final customerInfo = await Purchases.restorePurchases();
+      if (customerInfo.entitlements.all['elite']?.isActive == true) {
+        await upgradeToPremium();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint("Restore Error: $e");
+      return false;
+    }
+  }
+
+  Future<bool> purchaseElite() async {
+    try {
+      final offerings = await Purchases.getOfferings();
+      if (offerings.current != null && offerings.current!.availablePackages.isNotEmpty) {
+        // We assume the first package is the $1 Elite Membership
+        final package = offerings.current!.availablePackages.first;
+        final purchaseResult = await Purchases.purchasePackage(package);
+        if (purchaseResult.customerInfo.entitlements.all['elite']?.isActive == true) {
+          await upgradeToPremium(); // Save locally and to Firebase
+          return true;
+        }
+      }
+      return false;
+    } on PlatformException catch (e) {
+      var errorCode = PurchasesErrorHelper.getErrorCode(e);
+      if (errorCode != PurchasesErrorCode.purchaseCancelledError) {
+        debugPrint("Purchase Error: $e");
+      }
+      return false;
+    }
+  }
 }

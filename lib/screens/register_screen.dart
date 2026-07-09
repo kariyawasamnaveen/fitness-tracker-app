@@ -1,8 +1,12 @@
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import '../providers/fitness_provider.dart';
+import 'legal_document_viewer.dart';
+import '../utils/legal_texts.dart';
+
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -19,6 +23,8 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   bool _isLoading = false;
   bool _obscurePassword = true;
   String _focusedField = '';
+  bool _agreedToTerms = false;
+
 
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
@@ -41,6 +47,16 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   }
 
   void _handleRegister() async {
+    if (!_agreedToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please read and agree to the Terms of Service & Privacy Policy.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -317,6 +333,89 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                                   fieldKey: 'confirm_password',
                                   obscureText: _obscurePassword,
                                   forceGlow: true, // Forces Neon Glow as shown in Target Image
+                                ),
+                                SizedBox(height: maxHeight * 0.015),
+
+                                // Consent checkbox and agreement links row
+                                Row(
+                                  children: [
+                                    Theme(
+                                      data: Theme.of(context).copyWith(
+                                        unselectedWidgetColor: Colors.white70,
+                                      ),
+                                      child: SizedBox(
+                                        width: 32,
+                                        height: 32,
+                                        child: Checkbox(
+                                          value: _agreedToTerms,
+                                          activeColor: const Color(0xFF00D2FF),
+                                          checkColor: Colors.black,
+                                          onChanged: (val) {
+                                            setState(() {
+                                              _agreedToTerms = val ?? false;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: RichText(
+                                        text: TextSpan(
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            fontFamily: 'Roboto',
+                                          ),
+                                          children: [
+                                            const TextSpan(text: 'I agree to the '),
+                                            TextSpan(
+                                              text: 'Terms of Service',
+                                              style: const TextStyle(
+                                                color: Color(0xFF00D2FF),
+                                                fontWeight: FontWeight.bold,
+                                                decoration: TextDecoration.underline,
+                                              ),
+                                              recognizer: TapGestureRecognizer()
+                                                ..onTap = () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) => const LegalDocumentViewer(
+                                                        title: 'Terms of Service',
+                                                        content: LegalTexts.termsOfService,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                            ),
+                                            const TextSpan(text: ' and '),
+                                            TextSpan(
+                                              text: 'Privacy Policy',
+                                              style: const TextStyle(
+                                                color: Color(0xFF00D2FF),
+                                                fontWeight: FontWeight.bold,
+                                                decoration: TextDecoration.underline,
+                                              ),
+                                              recognizer: TapGestureRecognizer()
+                                                ..onTap = () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) => const LegalDocumentViewer(
+                                                        title: 'Privacy Policy',
+                                                        content: LegalTexts.privacyPolicy,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 SizedBox(height: maxHeight * 0.02), // Bottom padding before button overlap
                               ],

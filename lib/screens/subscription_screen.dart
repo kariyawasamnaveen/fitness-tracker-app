@@ -15,32 +15,62 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   void _processPayment() async {
     setState(() => _isLoading = true);
     
-    // Mocking a payment delay for now
-    await Future.delayed(const Duration(seconds: 2));
-    
-    if (!mounted) return;
-    
     final provider = Provider.of<FitnessProvider>(context, listen: false);
-    await provider.upgradeToPremium();
-    
-    setState(() => _isLoading = false);
+    final success = await provider.purchaseElite();
     
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Payment Successful! Welcome to Elite!', style: TextStyle(color: Colors.black)),
-          backgroundColor: Colors.cyanAccent,
-        ),
-      );
-      Navigator.pop(context);
+      setState(() => _isLoading = false);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment Successful! Welcome to Elite!', style: TextStyle(color: Colors.black)),
+            backgroundColor: Colors.cyanAccent,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Purchase failed or was cancelled.', style: TextStyle(color: Colors.white)),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
+  void _restorePurchases() async {
+    setState(() => _isLoading = true);
+    
+    final provider = Provider.of<FitnessProvider>(context, listen: false);
+    final success = await provider.restorePurchases();
+    
+    if (mounted) {
+      setState(() => _isLoading = false);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Purchases restored successfully!', style: TextStyle(color: Colors.black)),
+            backgroundColor: Colors.cyanAccent,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No previous purchases found.', style: TextStyle(color: Colors.white)),
+            backgroundColor: Colors.orangeAccent,
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0D1321), // Dark Navy
-      body: Stack(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0D1321), // Dark Navy
+        body: Stack(
         children: [
           // New Background Image with Blending and ShaderMask
           Positioned(
@@ -64,7 +94,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   BlendMode.lighten, // Lighten drops the pure black of the image, replacing it with the Navy background!
                 ),
                 child: Image.asset(
-                  'assets/images/premium_vertical.png',
+                  'assets/images/premium_vertical.webp',
                   fit: BoxFit.cover,
                 ),
               ),
@@ -80,7 +110,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const SizedBox(width: 48), // Spacer for balance
+                      const Spacer(),
                       const Text(
                         'ELITE ACCESS',
                         style: TextStyle(
@@ -89,10 +119,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           letterSpacing: 2,
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.cyanAccent, size: 28),
-                        onPressed: () => Navigator.pop(context),
-                      ),
+                      const Spacer(),
                     ],
                   ),
                 ),
@@ -263,6 +290,36 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                             color: Colors.white.withOpacity(0.4),
                           ),
                         ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Provider.of<FitnessProvider>(context, listen: false).logout();
+                              },
+                              child: Text(
+                                'Sign out',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white.withOpacity(0.5),
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            GestureDetector(
+                              onTap: _isLoading ? null : _restorePurchases,
+                              child: Text(
+                                'Restore Purchases',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.cyanAccent.withOpacity(0.8),
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -272,6 +329,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
