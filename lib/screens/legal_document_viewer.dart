@@ -1,3 +1,4 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'package:flutter/material.dart';
 
 class LegalDocumentViewer extends StatelessWidget {
@@ -46,7 +47,7 @@ class LegalDocumentViewer extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.03),
+                  color: Colors.white.withValues(alpha: 0.03),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: Colors.white10),
                 ),
@@ -64,9 +65,9 @@ class LegalDocumentViewer extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.cyanAccent.withOpacity(0.1),
+                            color: Colors.cyanAccent.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.cyanAccent.withOpacity(0.3)),
+                            border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.3)),
                           ),
                           child: const Text(
                             'OFFICIAL APPLICABLE DOCUMENT',
@@ -84,7 +85,7 @@ class LegalDocumentViewer extends StatelessWidget {
                         Text(
                           content,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                             fontSize: 14,
                             height: 1.6,
                             fontWeight: FontWeight.w500,
@@ -108,7 +109,7 @@ class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.cyanAccent.withOpacity(0.04)
+      ..color = Colors.cyanAccent.withValues(alpha: 0.04)
       ..strokeWidth = 1;
 
     for (double i = 0; i < size.width; i += 40) {

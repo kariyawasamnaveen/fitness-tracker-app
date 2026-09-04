@@ -1,7 +1,10 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../providers/fitness_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
+import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../providers/fitness_data_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -17,9 +20,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    final provider = Provider.of<FitnessProvider>(context, listen: false);
-    _weightController.text = provider.weight.toString();
-    _heightController.text = provider.height.toString();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final fitnessProvider = Provider.of<FitnessDataProvider>(context, listen: false);
+    _weightController.text = settingsProvider.profile.weight.toString();
+    _heightController.text = settingsProvider.profile.height.toString();
   }
 
   @override
@@ -29,12 +34,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
-  void _saveMetrics(FitnessProvider provider) {
+  void _saveMetrics(AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider) {
     final w = double.tryParse(_weightController.text);
     final h = double.tryParse(_heightController.text);
     
-    if (w != null) provider.updateWeight(w);
-    if (h != null) provider.updateHeight(h);
+    if (w != null) settingsProvider.updateWeight(w);
+    if (h != null) settingsProvider.updateHeight(h);
     
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Settings saved successfully!')),
@@ -65,7 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showDeleteConfirmation(BuildContext context, FitnessProvider provider) {
+  void _showDeleteConfirmation(BuildContext context, AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -83,7 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              final error = await provider.deleteAccount();
+              final error = await authProvider.deleteAccount();
               if (error == null) {
                 if (mounted) {
                   Navigator.of(context).popUntil((route) => route.isFirst);
@@ -131,8 +136,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           
           SafeArea(
-            child: Consumer<FitnessProvider>(
-              builder: (context, provider, child) {
+            child: Consumer3<AuthProvider, SettingsProvider, FitnessDataProvider>(
+              builder: (context, authProvider, settingsProvider, fitnessProvider, child) {
                 return ListView(
                   padding: const EdgeInsets.all(20.0),
                   physics: const BouncingScrollPhysics(),
@@ -152,9 +157,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _buildInputField(
                       label: 'Body Weight',
                       controller: _weightController,
-                      unit: provider.isKgMode ? 'Kg' : 'Lbs',
+                      unit: settingsProvider.profile.isKgMode ? 'Kg' : 'Lbs',
                       icon: Icons.monitor_weight_outlined,
-                      onToggleUnit: () => provider.toggleWeightUnit(!provider.isKgMode),
+                      onToggleUnit: () => settingsProvider.toggleWeightUnit(!settingsProvider.profile.isKgMode),
                     ),
                     const SizedBox(height: 16),
                     
@@ -162,9 +167,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _buildInputField(
                       label: 'Height',
                       controller: _heightController,
-                      unit: provider.isCmMode ? 'cm' : 'ft',
+                      unit: settingsProvider.profile.isCmMode ? 'cm' : 'ft',
                       icon: Icons.height,
-                      onToggleUnit: () => provider.toggleHeightUnit(!provider.isCmMode),
+                      onToggleUnit: () => settingsProvider.toggleHeightUnit(!settingsProvider.profile.isCmMode),
                     ),
                     
                     const SizedBox(height: 24),
@@ -172,11 +177,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     // Save Button
                     Center(
                       child: GestureDetector(
-                        onTap: () => _saveMetrics(provider),
+                        onTap: () => _saveMetrics(authProvider, settingsProvider, fitnessProvider),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                           decoration: BoxDecoration(
-                            color: Colors.cyanAccent.withOpacity(0.2),
+                            color: Colors.cyanAccent.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(30),
                             border: Border.all(color: Colors.cyanAccent),
                           ),
@@ -221,7 +226,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: 'Delete Account',
                       subtitle: 'Permanently delete your account and data',
                       iconColor: Colors.redAccent,
-                      onTap: () => _showDeleteConfirmation(context, provider),
+                      onTap: () => _showDeleteConfirmation(context, authProvider, settingsProvider, fitnessProvider),
                     ),
                   ],
                 );
@@ -243,7 +248,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white10),
       ),
@@ -284,9 +289,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.cyanAccent.withOpacity(0.1),
+                color: Colors.cyanAccent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.cyanAccent.withOpacity(0.5)),
+                border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.5)),
               ),
               child: Text(
                 unit,
@@ -314,7 +319,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       leading: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: iconColor.withOpacity(0.1),
+          color: iconColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(icon, color: iconColor),
@@ -343,7 +348,7 @@ class GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.cyanAccent.withOpacity(0.05)
+      ..color = Colors.cyanAccent.withValues(alpha: 0.05)
       ..strokeWidth = 1;
 
     for (double i = 0; i < size.width; i += 40) {

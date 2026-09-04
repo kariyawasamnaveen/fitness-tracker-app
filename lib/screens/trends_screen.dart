@@ -1,6 +1,9 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/fitness_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../providers/fitness_data_provider.dart';
 import '../utils/date_utility.dart';
 
 class TrendsScreen extends StatelessWidget {
@@ -10,10 +13,10 @@ class TrendsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B192C), // Very dark navy
-      body: Consumer<FitnessProvider>(
-        builder: (context, provider, child) {
-          final daysPassed = provider.daysPassed;
-          final completedDays = provider.totalCompletedDays;
+      body: Consumer3<AuthProvider, SettingsProvider, FitnessDataProvider>(
+        builder: (context, authProvider, settingsProvider, fitnessProvider, child) {
+          final daysPassed = fitnessProvider.daysPassed;
+          final completedDays = fitnessProvider.totalCompletedDays;
           final totalDays = 730;
           final double progress = (completedDays / totalDays).clamp(0.0, 1.0);
           final String progressStr = (progress * 100).toStringAsFixed(1);
@@ -41,7 +44,7 @@ class TrendsScreen extends StatelessWidget {
                       children: [
                         _buildJourneyCard(completedDays, totalDays, progress, progressStr),
                         const SizedBox(height: 24), // Compact spacing
-                        _buildConsistencyChart(provider),
+                        _buildConsistencyChart(authProvider, settingsProvider, fitnessProvider),
                         const SizedBox(height: 20), // Compact spacing
                         _buildStatCard(
                           icon: Icons.trending_up,
@@ -59,9 +62,9 @@ class TrendsScreen extends StatelessWidget {
                           nowVal: "${DateUtility.calculateSprints(completedDays)} SPRINT",
                         ),
                         const SizedBox(height: 8), // Compact spacing
-                        _buildStreakCard(provider.bestStreak),
+                        _buildStreakCard(fitnessProvider.progress.bestStreak),
                         const SizedBox(height: 24), // Compact spacing
-                        _buildHistoryButton(context, provider),
+                        _buildHistoryButton(context, authProvider, settingsProvider, fitnessProvider),
                         const SizedBox(height: 100),
                       ],
                     ),
@@ -200,14 +203,14 @@ class TrendsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildConsistencyChart(FitnessProvider provider) {
+  Widget _buildConsistencyChart(AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider) {
     // Determine last 7 days status
     List<bool> past7Days = [];
     List<DateTime> past7Dates = [];
     DateTime today = DateTime.now();
     for (int i = 6; i >= 0; i--) {
       DateTime d = today.subtract(Duration(days: i));
-      past7Days.add(provider.isDayCompleted(d));
+      past7Days.add(fitnessProvider.isDayCompleted(d));
       past7Dates.add(d);
     }
 
@@ -431,9 +434,9 @@ class TrendsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHistoryButton(BuildContext context, FitnessProvider provider) {
+  Widget _buildHistoryButton(BuildContext context, AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider) {
     return GestureDetector(
-      onTap: () => _showHistoryBottomSheet(context, provider),
+      onTap: () => _showHistoryBottomSheet(context, authProvider, settingsProvider, fitnessProvider),
       child: Column(
         children: [
           // Top glowing line
@@ -494,15 +497,15 @@ class TrendsScreen extends StatelessWidget {
     );
   }
 
-  void _showHistoryBottomSheet(BuildContext context, FitnessProvider provider) {
+  void _showHistoryBottomSheet(BuildContext context, AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider) {
     int totalPushups = 0;
     int totalSprints = 0;
     int totalCompletedDays = 0;
     
-    if (provider.startDate != null) {
-      for (int i = 0; i <= provider.daysPassed; i++) {
-        DateTime checkDate = provider.startDate!.add(Duration(days: i));
-        if (provider.isDayCompleted(checkDate)) {
+    if (fitnessProvider.progress.startDate != null) {
+      for (int i = 0; i <= fitnessProvider.daysPassed; i++) {
+        DateTime checkDate = fitnessProvider.progress.startDate!.add(Duration(days: i));
+        if (fitnessProvider.isDayCompleted(checkDate)) {
           totalCompletedDays++;
           totalPushups += DateUtility.calculatePushUps(i);
           totalSprints += DateUtility.calculateSprints(i);
@@ -574,10 +577,10 @@ class TrendsScreen extends StatelessWidget {
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
                   ),
-                  itemCount: provider.daysPassed + 1,
+                  itemCount: fitnessProvider.daysPassed + 1,
                   itemBuilder: (context, index) {
-                    DateTime date = provider.startDate!.add(Duration(days: index));
-                    bool isCompleted = provider.isDayCompleted(date);
+                    DateTime date = fitnessProvider.progress.startDate!.add(Duration(days: index));
+                    bool isCompleted = fitnessProvider.isDayCompleted(date);
                     return Container(
                       decoration: BoxDecoration(
                         color: isCompleted ? const Color(0xFF00D2FF) : Colors.white.withValues(alpha: 0.03),

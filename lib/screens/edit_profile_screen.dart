@@ -1,6 +1,9 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/fitness_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../providers/fitness_data_provider.dart';
 import 'package:intl/intl.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -34,18 +37,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final provider = Provider.of<FitnessProvider>(context, listen: false);
-    _nameController = TextEditingController(text: provider.userName);
-    _targetWeightController = TextEditingController(text: provider.targetWeight > 0 ? provider.targetWeight.toString() : '');
-    _medicalConditionsController = TextEditingController(text: provider.medicalConditions == 'None' ? '' : provider.medicalConditions);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final fitnessProvider = Provider.of<FitnessDataProvider>(context, listen: false);
+    _nameController = TextEditingController(text: authProvider.userName);
+    _targetWeightController = TextEditingController(text: settingsProvider.profile.targetWeight > 0 ? settingsProvider.profile.targetWeight.toString() : '');
+    _medicalConditionsController = TextEditingController(text: settingsProvider.profile.medicalConditions == 'None' ? '' : settingsProvider.profile.medicalConditions);
 
-    _selectedGender = provider.gender;
-    _selectedDob = provider.dateOfBirth;
-    _selectedGoal = provider.mainGoal;
-    _selectedActivity = provider.activityLevel;
-    _selectedTargetDate = provider.targetDate;
-    _selectedEnvironment = provider.workoutEnvironment;
-    _selectedDiet = provider.dietaryPreference;
+    _selectedGender = settingsProvider.profile.gender;
+    _selectedDob = settingsProvider.profile.dateOfBirth;
+    _selectedGoal = settingsProvider.profile.mainGoal;
+    _selectedActivity = settingsProvider.profile.activityLevel;
+    _selectedTargetDate = settingsProvider.profile.targetDate;
+    _selectedEnvironment = settingsProvider.profile.workoutEnvironment;
+    _selectedDiet = settingsProvider.profile.dietaryPreference;
   }
 
   @override
@@ -93,8 +98,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
-      final provider = Provider.of<FitnessProvider>(context, listen: false);
-      provider.updateAdvancedProfile(
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final fitnessProvider = Provider.of<FitnessDataProvider>(context, listen: false);
+      settingsProvider.updateAdvancedProfile(
         name: _nameController.text.trim(),
         gender: _selectedGender ?? 'Not Specified',
         dateOfBirth: _selectedDob,
@@ -137,15 +144,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ],
       ),
-      body: Consumer<FitnessProvider>(
-        builder: (context, provider, child) {
+      body: Consumer3<AuthProvider, SettingsProvider, FitnessDataProvider>(
+        builder: (context, authProvider, settingsProvider, fitnessProvider, child) {
           return Form(
             key: _formKey,
             child: ListView(
               padding: const EdgeInsets.all(20),
               physics: const BouncingScrollPhysics(),
               children: [
-                _buildHeader(provider),
+                _buildHeader(authProvider, settingsProvider, fitnessProvider),
                 const SizedBox(height: 30),
                 
                 _buildSectionTitle('BASIC INFO'),
@@ -194,7 +201,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildHeader(FitnessProvider provider) {
+  Widget _buildHeader(AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider) {
     return Center(
       child: Stack(
         alignment: Alignment.bottomRight,
@@ -219,7 +226,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               border: Border.all(color: Colors.cyanAccent, width: 1),
             ),
             child: Text(
-              provider.fitnessLevelBadge,
+              fitnessProvider.fitnessLevelBadge,
               style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
             ),
           ),
@@ -251,9 +258,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           hintText: hint,
           hintStyle: const TextStyle(color: Colors.white24),
           labelStyle: const TextStyle(color: Colors.white54),
-          prefixIcon: maxLines == 1 ? Icon(icon, color: Colors.cyanAccent.withOpacity(0.5)) : null,
+          prefixIcon: maxLines == 1 ? Icon(icon, color: Colors.cyanAccent.withValues(alpha: 0.5)) : null,
           filled: true,
-          fillColor: Colors.white.withOpacity(0.05),
+          fillColor: Colors.white.withValues(alpha: 0.05),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.white10)),
           focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.cyanAccent)),
@@ -274,9 +281,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(color: Colors.white54),
-          prefixIcon: Icon(icon, color: Colors.cyanAccent.withOpacity(0.5)),
+          prefixIcon: Icon(icon, color: Colors.cyanAccent.withValues(alpha: 0.5)),
           filled: true,
-          fillColor: Colors.white.withOpacity(0.05),
+          fillColor: Colors.white.withValues(alpha: 0.05),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.white10)),
           focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.cyanAccent)),
@@ -295,13 +302,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white10),
           ),
           child: Row(
             children: [
-              Icon(icon, color: Colors.cyanAccent.withOpacity(0.5)),
+              Icon(icon, color: Colors.cyanAccent.withValues(alpha: 0.5)),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

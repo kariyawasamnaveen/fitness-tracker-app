@@ -1,6 +1,9 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/fitness_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../providers/fitness_data_provider.dart';
 import 'personal_records_screen.dart';
 import 'connected_accounts_screen.dart';
 import 'notification_settings_screen.dart';
@@ -14,11 +17,11 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF061121), // Darker navy for the top
-      body: Consumer<FitnessProvider>(
-        builder: (context, provider, child) {
-          final completedDays = provider.totalCompletedDays;
+      body: Consumer3<AuthProvider, SettingsProvider, FitnessDataProvider>(
+        builder: (context, authProvider, settingsProvider, fitnessProvider, child) {
+          final completedDays = fitnessProvider.totalCompletedDays;
           final totalDays = 730;
-          final streak = provider.streakCount; // Keeping current streak as it's common for profiles
+          final streak = fitnessProvider.streakCount; // Keeping current streak as it's common for profiles
 
           return Stack(
             children: [
@@ -58,7 +61,7 @@ class ProfileScreen extends StatelessWidget {
                   physics: const BouncingScrollPhysics(),
                   children: [
                     const SizedBox(height: 24),
-                    _buildProfileHeader(provider),
+                    _buildProfileHeader(authProvider, settingsProvider, fitnessProvider),
                     const SizedBox(height: 24),
                     _buildJourneyStatusCard(completedDays, totalDays, streak),
                     const SizedBox(height: 24),
@@ -85,7 +88,7 @@ class ProfileScreen extends StatelessWidget {
                     }),
                     const SizedBox(height: 10),
                     _buildMenuOption(context, Icons.logout, "Logout", isLogout: true, onTap: () {
-                      provider.logout();
+                      authProvider.logout();
                     }),
                     const SizedBox(height: 24),
                     _buildEditProfileButton(context),
@@ -100,7 +103,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader(FitnessProvider provider) {
+  Widget _buildProfileHeader(AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider) {
     return Column(
       children: [
         // Avatar
@@ -144,7 +147,7 @@ class ProfileScreen extends StatelessWidget {
             end: Alignment.bottomRight,
           ).createShader(bounds),
           child: Text(
-            provider.userName.toUpperCase(),
+            authProvider.userName.toUpperCase(),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 18,
@@ -155,7 +158,7 @@ class ProfileScreen extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          provider.userEmail.isEmpty ? "No Email Provided" : provider.userEmail,
+          authProvider.userEmail.isEmpty ? "No Email Provided" : authProvider.userEmail,
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.6),
             fontSize: 14,
@@ -167,12 +170,12 @@ class ProfileScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
-            color: const Color(0xFF00E5FF).withOpacity(0.1),
+            color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.5)),
+            border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.5)),
           ),
           child: Text(
-            provider.fitnessLevelBadge,
+            fitnessProvider.fitnessLevelBadge,
             style: const TextStyle(
               color: Color(0xFF00E5FF),
               fontWeight: FontWeight.bold,
@@ -181,16 +184,16 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        if (provider.isPremium)
+        if (settingsProvider.profile.isPremium)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFF00FF87).withOpacity(0.15),
+              color: const Color(0xFF00FF87).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFF00FF87).withOpacity(0.5)),
+              border: Border.all(color: const Color(0xFF00FF87).withValues(alpha: 0.5)),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF00FF87).withOpacity(0.2),
+                  color: const Color(0xFF00FF87).withValues(alpha: 0.2),
                   blurRadius: 10,
                 )
               ],
@@ -241,7 +244,7 @@ class ProfileScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), // Reduced padding for smaller height
         decoration: BoxDecoration(
-          color: const Color(0xFF2A364F).withOpacity(0.85), // Solidified base color to simulate glass without heavy blur
+          color: const Color(0xFF2A364F).withValues(alpha: 0.85), // Solidified base color to simulate glass without heavy blur
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.5),
             boxShadow: [

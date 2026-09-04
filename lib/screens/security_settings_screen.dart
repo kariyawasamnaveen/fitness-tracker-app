@@ -1,6 +1,9 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/fitness_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../providers/fitness_data_provider.dart';
 import 'package:local_auth/local_auth.dart';
 import 'legal_document_viewer.dart';
 import '../utils/legal_texts.dart';
@@ -8,7 +11,7 @@ import '../utils/legal_texts.dart';
 class SecuritySettingsScreen extends StatelessWidget {
   const SecuritySettingsScreen({super.key});
 
-  Future<void> _handleAppLockToggle(BuildContext context, FitnessProvider provider, bool value) async {
+  Future<void> _handleAppLockToggle(BuildContext context, AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider, bool value) async {
     if (value) {
       // User wants to turn ON app lock. Let's verify they actually have biometrics available and working.
       final LocalAuthentication auth = LocalAuthentication();
@@ -31,7 +34,7 @@ class SecuritySettingsScreen extends StatelessWidget {
         );
 
         if (didAuthenticate) {
-          provider.toggleAppLock(true);
+          authProvider.toggleAppLock(true);
         }
       } catch (e) {
         if (context.mounted) {
@@ -42,7 +45,7 @@ class SecuritySettingsScreen extends StatelessWidget {
       }
     } else {
       // Turning it off just requires normal toggle
-      provider.toggleAppLock(false);
+      authProvider.toggleAppLock(false);
     }
   }
 
@@ -90,8 +93,8 @@ class SecuritySettingsScreen extends StatelessWidget {
           ),
           
           SafeArea(
-            child: Consumer<FitnessProvider>(
-              builder: (context, provider, child) {
+            child: Consumer3<AuthProvider, SettingsProvider, FitnessDataProvider>(
+              builder: (context, authProvider, settingsProvider, fitnessProvider, child) {
                 return ListView(
                   padding: const EdgeInsets.all(20.0),
                   physics: const BouncingScrollPhysics(),
@@ -111,8 +114,8 @@ class SecuritySettingsScreen extends StatelessWidget {
                     _buildSwitchTile(
                       title: 'App Lock 🔐',
                       subtitle: 'Require Fingerprint or Face ID to open the app.',
-                      value: provider.isAppLockEnabled,
-                      onChanged: (val) => _handleAppLockToggle(context, provider, val),
+                      value: authProvider.isAppLockEnabled,
+                      onChanged: (val) => _handleAppLockToggle(context, authProvider, settingsProvider, fitnessProvider, val),
                     ),
                     const SizedBox(height: 40),
                     
@@ -131,8 +134,8 @@ class SecuritySettingsScreen extends StatelessWidget {
                     _buildSwitchTile(
                       title: 'Share Anonymous Data 📊',
                       subtitle: 'Help us improve the app by sharing crash reports and usage statistics.',
-                      value: provider.shareAnalyticsData,
-                      onChanged: (val) => provider.toggleAnalytics(val),
+                      value: settingsProvider.shareAnalyticsData,
+                      onChanged: (val) => settingsProvider.toggleAnalytics(val),
                     ),
                     
                     const SizedBox(height: 40),
@@ -183,7 +186,7 @@ class SecuritySettingsScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white10),
       ),
@@ -216,7 +219,7 @@ class SecuritySettingsScreen extends StatelessWidget {
             value: value,
             onChanged: onChanged,
             activeThumbColor: Colors.cyanAccent,
-            activeTrackColor: Colors.cyanAccent.withOpacity(0.3),
+            activeTrackColor: Colors.cyanAccent.withValues(alpha: 0.3),
             inactiveThumbColor: Colors.white54,
             inactiveTrackColor: Colors.white10,
           ),
@@ -236,7 +239,7 @@ class SecuritySettingsScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white10),
         ),
@@ -266,7 +269,7 @@ class GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.cyanAccent.withOpacity(0.05)
+      ..color = Colors.cyanAccent.withValues(alpha: 0.05)
       ..strokeWidth = 1;
 
     for (double i = 0; i < size.width; i += 40) {

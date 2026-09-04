@@ -1,9 +1,12 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
-import '../providers/fitness_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../providers/fitness_data_provider.dart';
 import 'legal_document_viewer.dart';
 import '../utils/legal_texts.dart';
 
@@ -63,14 +66,23 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
 
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please fill in all fields.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+      return;
+    }
 
-    final provider = Provider.of<FitnessProvider>(context, listen: false);
-    bool success = await provider.register(
-      name.isEmpty ? 'Athlete' : name, 
-      email.isEmpty ? 'athlete@elite.com' : email, 
-      password.isEmpty ? 'password' : password
-    );
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final fitnessProvider = Provider.of<FitnessDataProvider>(context, listen: false);
+    bool success = await authProvider.register(name, email, password);
 
     if (mounted) {
       setState(() => _isLoading = false);

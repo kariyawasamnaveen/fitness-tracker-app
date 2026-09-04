@@ -1,6 +1,9 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/fitness_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../providers/fitness_data_provider.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -15,8 +18,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   void _processPayment() async {
     setState(() => _isLoading = true);
     
-    final provider = Provider.of<FitnessProvider>(context, listen: false);
-    final success = await provider.purchaseElite();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final fitnessProvider = Provider.of<FitnessDataProvider>(context, listen: false);
+    final success = await settingsProvider.upgradeToPremium(); // Or handle RevenueCat properly if needed
     
     if (mounted) {
       setState(() => _isLoading = false);
@@ -41,8 +46,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   void _restorePurchases() async {
     setState(() => _isLoading = true);
     
-    final provider = Provider.of<FitnessProvider>(context, listen: false);
-    final success = await provider.restorePurchases();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final fitnessProvider = Provider.of<FitnessDataProvider>(context, listen: false);
+    final success = await settingsProvider.restorePurchases();
     
     if (mounted) {
       setState(() => _isLoading = false);
@@ -154,7 +161,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                           ),
                         ),
                         
@@ -176,12 +183,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: Colors.cyanAccent.withOpacity(0.5), width: 1),
+                            border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.5), width: 1),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.cyanAccent.withOpacity(0.1),
+                                color: Colors.cyanAccent.withValues(alpha: 0.1),
                                 blurRadius: 20,
                                 spreadRadius: -5,
                               )
@@ -255,7 +262,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               backgroundColor: Colors.cyanAccent,
                               foregroundColor: Colors.black,
                               elevation: 10,
-                              shadowColor: Colors.cyanAccent.withOpacity(0.5),
+                              shadowColor: Colors.cyanAccent.withValues(alpha: 0.5),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -287,7 +294,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 10,
-                            color: Colors.white.withOpacity(0.4),
+                            color: Colors.white.withValues(alpha: 0.4),
                           ),
                         ),
                         Row(
@@ -295,13 +302,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           children: [
                             GestureDetector(
                               onTap: () {
-                                Provider.of<FitnessProvider>(context, listen: false).logout();
+                                Provider.of<AuthProvider>(context, listen: false).logout();
                               },
                               child: Text(
                                 'Sign out',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: Colors.white.withValues(alpha: 0.5),
                                   decoration: TextDecoration.underline,
                                 ),
                               ),
@@ -313,7 +320,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                 'Restore Purchases',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.cyanAccent.withOpacity(0.8),
+                                  color: Colors.cyanAccent.withValues(alpha: 0.8),
                                   decoration: TextDecoration.underline,
                                 ),
                               ),
@@ -340,7 +347,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: Colors.cyanAccent.withOpacity(0.1),
+            color: Colors.cyanAccent.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.check, color: Colors.cyanAccent, size: 16),

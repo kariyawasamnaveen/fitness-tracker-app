@@ -1,14 +1,17 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/fitness_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../providers/fitness_data_provider.dart';
 
 class NotificationSettingsScreen extends StatelessWidget {
   const NotificationSettingsScreen({super.key});
 
-  Future<void> _selectTime(BuildContext context, FitnessProvider provider) async {
+  Future<void> _selectTime(BuildContext context, AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: provider.workoutReminderTime,
+      initialTime: settingsProvider.workoutReminderTime,
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.dark().copyWith(
@@ -23,8 +26,8 @@ class NotificationSettingsScreen extends StatelessWidget {
         );
       },
     );
-    if (picked != null && picked != provider.workoutReminderTime) {
-      provider.updateWorkoutReminderTime(picked);
+    if (picked != null && picked != settingsProvider.workoutReminderTime) {
+      settingsProvider.updateWorkoutReminderTime(picked);
     }
   }
 
@@ -58,8 +61,8 @@ class NotificationSettingsScreen extends StatelessWidget {
           ),
           
           SafeArea(
-            child: Consumer<FitnessProvider>(
-              builder: (context, provider, child) {
+            child: Consumer3<AuthProvider, SettingsProvider, FitnessDataProvider>(
+              builder: (context, authProvider, settingsProvider, fitnessProvider, child) {
                 return ListView(
                   padding: const EdgeInsets.all(20.0),
                   physics: const BouncingScrollPhysics(),
@@ -79,8 +82,8 @@ class NotificationSettingsScreen extends StatelessWidget {
                     _buildSwitchTile(
                       title: 'Morning Motivation ☀️',
                       subtitle: 'Receive a daily fitness quote to start your day.',
-                      value: provider.motivationEnabled,
-                      onChanged: (val) => provider.toggleMotivation(val),
+                      value: settingsProvider.motivationEnabled,
+                      onChanged: (val) => settingsProvider.toggleMotivation(val),
                     ),
                     const SizedBox(height: 16),
                     
@@ -88,22 +91,22 @@ class NotificationSettingsScreen extends StatelessWidget {
                     _buildSwitchTile(
                       title: 'Workout Reminder 💪',
                       subtitle: "Get notified when it's time to train.",
-                      value: provider.workoutReminderEnabled,
-                      onChanged: (val) => provider.toggleWorkoutReminder(val),
+                      value: settingsProvider.workoutReminderEnabled,
+                      onChanged: (val) => settingsProvider.toggleWorkoutReminder(val),
                     ),
                     
                     // Time Picker for Workout Reminder
-                    if (provider.workoutReminderEnabled)
+                    if (settingsProvider.workoutReminderEnabled)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
                         child: GestureDetector(
-                          onTap: () => _selectTime(context, provider),
+                          onTap: () => _selectTime(context, authProvider, settingsProvider, fitnessProvider),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             decoration: BoxDecoration(
-                              color: Colors.cyanAccent.withOpacity(0.1),
+                              color: Colors.cyanAccent.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.cyanAccent.withOpacity(0.3)),
+                              border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.3)),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -115,7 +118,7 @@ class NotificationSettingsScreen extends StatelessWidget {
                                 Row(
                                   children: [
                                     Text(
-                                      provider.workoutReminderTime.format(context),
+                                      settingsProvider.workoutReminderTime.format(context),
                                       style: const TextStyle(
                                         color: Colors.cyanAccent,
                                         fontSize: 18,
@@ -151,8 +154,8 @@ class NotificationSettingsScreen extends StatelessWidget {
                     _buildSwitchTile(
                       title: 'Streak Saver Alert 🛡️',
                       subtitle: "Get a warning at 8:00 PM if you haven't completed your daily workout.",
-                      value: provider.streakSaverEnabled,
-                      onChanged: (val) => provider.toggleStreakSaver(val),
+                      value: settingsProvider.streakSaverEnabled,
+                      onChanged: (val) => settingsProvider.toggleStreakSaver(val),
                     ),
                   ],
                 );
@@ -173,7 +176,7 @@ class NotificationSettingsScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white10),
       ),
@@ -206,7 +209,7 @@ class NotificationSettingsScreen extends StatelessWidget {
             value: value,
             onChanged: onChanged,
             activeThumbColor: Colors.cyanAccent,
-            activeTrackColor: Colors.cyanAccent.withOpacity(0.3),
+            activeTrackColor: Colors.cyanAccent.withValues(alpha: 0.3),
             inactiveThumbColor: Colors.white54,
             inactiveTrackColor: Colors.white10,
           ),
@@ -220,7 +223,7 @@ class GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.cyanAccent.withOpacity(0.05)
+      ..color = Colors.cyanAccent.withValues(alpha: 0.05)
       ..strokeWidth = 1;
 
     for (double i = 0; i < size.width; i += 40) {

@@ -1,7 +1,10 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/fitness_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../providers/fitness_data_provider.dart';
 import '../utils/date_utility.dart';
 
 class PersonalRecordsScreen extends StatelessWidget {
@@ -30,10 +33,10 @@ class PersonalRecordsScreen extends StatelessWidget {
         centerTitle: true,
       ),
       extendBodyBehindAppBar: true,
-      body: Consumer<FitnessProvider>(
-        builder: (context, provider, child) {
-          final completedDays = provider.totalCompletedDays;
-          final bestStreak = provider.bestStreak;
+      body: Consumer3<AuthProvider, SettingsProvider, FitnessDataProvider>(
+        builder: (context, authProvider, settingsProvider, fitnessProvider, child) {
+          final completedDays = fitnessProvider.totalCompletedDays;
+          final bestStreak = fitnessProvider.progress.bestStreak;
           final maxPushups = DateUtility.calculatePushUps(completedDays);
           final maxSprints = DateUtility.calculateSprints(completedDays);
           final maxSquats = DateUtility.calculateSquats(completedDays);

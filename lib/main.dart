@@ -1,8 +1,11 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'providers/fitness_provider.dart';
+import 'providers/auth_provider.dart';
+import 'providers/settings_provider.dart';
+import 'providers/fitness_data_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/onboarding_screen.dart';
@@ -14,17 +17,19 @@ import 'dart:io';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'utils/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  await dotenv.load(fileName: ".env");
+  
   if (Platform.isAndroid) {
-    // Using the API key from RevenueCat dashboard
-    await Purchases.configure(PurchasesConfiguration("goog_KPAqpSKxxnuITegbUSXkexbuVwF"));
+    await Purchases.configure(PurchasesConfiguration(dotenv.env['REVENUECAT_API_KEY_ANDROID'] ?? ""));
   } else if (Platform.isIOS) {
-    await Purchases.configure(PurchasesConfiguration("appl_PLACEHOLDER_KEY"));
+    await Purchases.configure(PurchasesConfiguration(dotenv.env['REVENUECAT_API_KEY_IOS'] ?? ""));
   }
   
   // Initialize Firebase safely
@@ -46,7 +51,9 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => FitnessProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => FitnessDataProvider()),
       ],
       child: const FitnessTrackerApp(),
     ),
@@ -106,27 +113,27 @@ class FitnessTrackerApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: Consumer<FitnessProvider>(
-        builder: (context, provider, child) {
+      home: Consumer3<AuthProvider, SettingsProvider, FitnessDataProvider>(
+        builder: (context, authProvider, settingsProvider, fitnessProvider, child) {
           debugPrint("============== MAIN NAVIGATION TRACE ==============");
-          debugPrint("1. isInitialized: ${provider.isInitialized}");
-          debugPrint("2. hasSeenOnboarding: ${provider.hasSeenOnboarding}");
-          debugPrint("3. isLoggedIn: ${provider.isLoggedIn}");
-          debugPrint("4. isPremium: ${provider.isPremium}");
+          debugPrint("1. isInitialized: ${(authProvider.isInitialized && settingsProvider.isInitialized && fitnessProvider.isInitialized)}");
+          debugPrint("2. hasSeenOnboarding: ${settingsProvider.profile.hasSeenOnboarding}");
+          debugPrint("3. isLoggedIn: ${authProvider.isLoggedIn}");
+          debugPrint("4. isPremium: ${settingsProvider.profile.isPremium}");
           
-          if (!provider.isInitialized) {
+          if (!(authProvider.isInitialized && settingsProvider.isInitialized && fitnessProvider.isInitialized)) {
             debugPrint("-> Routing to: CircularProgressIndicator (Not Initialized)");
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
           }
-          if (!provider.hasSeenOnboarding) {
+          if (!settingsProvider.profile.hasSeenOnboarding) {
             debugPrint("-> Routing to: OnboardingScreen (hasSeenOnboarding is false)");
             return const OnboardingScreen();
           }
-          if (!provider.isLoggedIn) {
+          if (!authProvider.isLoggedIn) {
             debugPrint("-> Routing to: LoginScreen (isLoggedIn is false)");
             return const LoginScreen();
           }
-          if (!provider.isPremium) {
+          if (!settingsProvider.profile.isPremium) {
             debugPrint("-> Routing to: SubscriptionScreen (isPremium is false)");
             return const SubscriptionScreen();
           }
@@ -170,20 +177,26 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _authenticateIfNeeded();
-      final provider = Provider.of<FitnessProvider>(context, listen: false);
-      provider.autoFetchGoogleFitSteps();
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final fitnessProvider = Provider.of<FitnessDataProvider>(context, listen: false);
+      fitnessProvider.autoFetchGoogleFitSteps();
     } else if (state == AppLifecycleState.paused) {
-      final provider = Provider.of<FitnessProvider>(context, listen: false);
-      if (provider.isAppLockEnabled) {
-        provider.setAuthenticated(false);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final fitnessProvider = Provider.of<FitnessDataProvider>(context, listen: false);
+      if (authProvider.isAppLockEnabled) {
+        authProvider.setAuthenticated(false);
       }
     }
   }
 
   Future<void> _authenticateIfNeeded() async {
     if (!mounted) return;
-    final provider = Provider.of<FitnessProvider>(context, listen: false);
-    if (!provider.isAppLockEnabled || provider.isAuthenticated) return;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final fitnessProvider = Provider.of<FitnessDataProvider>(context, listen: false);
+    if (!authProvider.isAppLockEnabled || authProvider.isAuthenticated) return;
 
     try {
       final didAuthenticate = await auth.authenticate(
@@ -191,7 +204,7 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
         biometricOnly: false,
       );
       if (didAuthenticate && mounted) {
-        provider.setAuthenticated(true);
+        authProvider.setAuthenticated(true);
       }
     } catch (e) {
       debugPrint("Auth error: $e");
@@ -200,8 +213,10 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<FitnessProvider>(context);
-    if (provider.isAppLockEnabled && !provider.isAuthenticated) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+    final fitnessProvider = Provider.of<FitnessDataProvider>(context);
+    if (authProvider.isAppLockEnabled && !authProvider.isAuthenticated) {
       // Return a blank screen to hide app content. 
       // The native fingerprint prompt is automatically shown on startup/resume.
       // If the user dismisses the native prompt, tapping the screen will show it again.

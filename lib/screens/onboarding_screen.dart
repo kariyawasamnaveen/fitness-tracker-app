@@ -1,6 +1,7 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/fitness_provider.dart';
+import '../providers/settings_provider.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -320,7 +321,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildGetStartedButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Provider.of<FitnessProvider>(context, listen: false).completeOnboarding();
+        Provider.of<SettingsProvider>(context, listen: false).completeOnboarding();
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 40),

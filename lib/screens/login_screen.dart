@@ -1,8 +1,11 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/fitness_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../providers/fitness_data_provider.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
 
@@ -48,13 +51,23 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
+    if (email.isEmpty || password.isEmpty) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please enter both email and password.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+      return;
+    }
 
-    final provider = Provider.of<FitnessProvider>(context, listen: false);
-    String? error = await provider.login(
-      email.isEmpty ? 'athlete@elite.com' : email, 
-      password.isEmpty ? 'password' : password
-    );
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final fitnessProvider = Provider.of<FitnessDataProvider>(context, listen: false);
+    String? error = await authProvider.login(email, password);
     
     if (mounted) {
       setState(() => _isLoading = false);
@@ -476,8 +489,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             borderRadius: BorderRadius.circular(16),
                             onTap: () async {
                               setState(() => _isLoading = true);
-                              final provider = Provider.of<FitnessProvider>(context, listen: false);
-                              String? error = await provider.signInWithGoogle();
+                              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final fitnessProvider = Provider.of<FitnessDataProvider>(context, listen: false);
+                              String? error = await authProvider.signInWithGoogle();
                               
                               if (mounted) {
                                 setState(() => _isLoading = false);

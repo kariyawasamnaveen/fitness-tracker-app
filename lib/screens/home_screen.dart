@@ -1,6 +1,9 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/fitness_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../providers/fitness_data_provider.dart';
 import '../widgets/exercise_card.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -10,21 +13,21 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEFECE6), // Premium bottom cream background
-      body: Consumer<FitnessProvider>(
-        builder: (context, provider, child) {
-          if (!provider.isInitialized) {
+      body: Consumer3<AuthProvider, SettingsProvider, FitnessDataProvider>(
+        builder: (context, authProvider, settingsProvider, fitnessProvider, child) {
+          if (!(authProvider.isInitialized && settingsProvider.isInitialized && fitnessProvider.isInitialized)) {
             return const Center(child: CircularProgressIndicator());
           }
 
           final today = DateTime.now();
-          final isCompleted = provider.isDayCompleted(today);
+          final isCompleted = fitnessProvider.isDayCompleted(today);
 
           return Stack(
             children: [
               Column(
                 children: [
                   // 1. Top Dark Navy Curved Header
-                  _buildEliteHeader(context, provider, isCompleted),
+                  _buildEliteHeader(context, authProvider, settingsProvider, fitnessProvider, isCompleted),
 
                   // 2. Scrollable Body
                   Expanded(
@@ -35,19 +38,19 @@ class HomeScreen extends StatelessWidget {
                         // SECTION A: EXERCISE ZONE
                         ExerciseCard(
                           title: 'Jumping Jacks',
-                          count: provider.jumpingJacksCount.toString(),
+                          count: fitnessProvider.jumpingJacksCount.toString(),
                           unit: 'Repetitions',
                           icon: Icons.accessibility_new,
                         ),
                         ExerciseCard(
                           title: 'Push Ups',
-                          count: provider.pushUpsCount.toString(),
+                          count: fitnessProvider.pushUpsCount.toString(),
                           unit: 'Repetitions',
                           icon: Icons.fitness_center,
                         ),
                         ExerciseCard(
                           title: 'Squats',
-                          count: provider.squatsCount.toString(),
+                          count: fitnessProvider.squatsCount.toString(),
                           unit: 'Repetitions',
                           icon: Icons.airline_seat_recline_extra,
                         ),
@@ -66,20 +69,20 @@ class HomeScreen extends StatelessWidget {
                         // SECTION B: RUNNING ZONE
                         ExerciseCard(
                           title: 'Jogging Rounds',
-                          count: provider.joggingRounds.toString(),
+                          count: fitnessProvider.joggingRounds.toString(),
                           unit: 'Ground Rounds',
                           icon: Icons.directions_run,
                         ),
                         ExerciseCard(
                           title: 'Sprints (6m)',
-                          count: provider.sprintsCount.toString(),
+                          count: fitnessProvider.sprintsCount.toString(),
                           unit: 'Full Speed Sets',
                           icon: Icons.bolt,
                         ),
                         const SizedBox(height: 32),
                         _buildAlternatingDaysNote(),
                         const SizedBox(height: 16),
-                        _buildResetButton(context, provider),
+                        _buildResetButton(context, authProvider, settingsProvider, fitnessProvider),
                       ],
                     ),
                   ),
@@ -92,7 +95,7 @@ class HomeScreen extends StatelessWidget {
                   bottom: 85,
                   left: 24,
                   right: 24,
-                  child: _buildMarkCompletedButton(context, provider, today, isCompleted),
+                  child: _buildMarkCompletedButton(context, authProvider, settingsProvider, fitnessProvider, today, isCompleted),
                 ),
             ],
           );
@@ -101,7 +104,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEliteHeader(BuildContext context, FitnessProvider provider, bool isCompleted) {
+  Widget _buildEliteHeader(BuildContext context, AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider, bool isCompleted) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -182,7 +185,7 @@ class HomeScreen extends StatelessWidget {
                               end: Alignment.bottomRight,
                             ).createShader(bounds),
                             child: Text(
-                              'DAY ${provider.daysPassed + 1}',
+                              'DAY ${fitnessProvider.daysPassed + 1}',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 48,
@@ -197,10 +200,10 @@ class HomeScreen extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          _buildStreakBadge(provider.streakCount),
-                          if (provider.isGoogleFitConnected) ...[
+                          _buildStreakBadge(fitnessProvider.streakCount),
+                          if (fitnessProvider.progress.isGoogleFitConnected) ...[
                             const SizedBox(height: 8),
-                            _buildStepsBadge(provider.todaySteps),
+                            _buildStepsBadge(fitnessProvider.todaySteps),
                           ],
                         ],
                       ),
@@ -390,9 +393,9 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMarkCompletedButton(BuildContext context, FitnessProvider provider, DateTime date, bool isCompleted) {
+  Widget _buildMarkCompletedButton(BuildContext context, AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider, DateTime date, bool isCompleted) {
     return GestureDetector(
-      onTap: () => provider.toggleCompletion(date),
+      onTap: () => fitnessProvider.toggleCompletion(date),
       child: Container(
         height: 52,
         margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -477,10 +480,10 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildResetButton(BuildContext context, FitnessProvider provider) {
+  Widget _buildResetButton(BuildContext context, AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider) {
     return Center(
       child: TextButton(
-        onPressed: () => _showResetConfirmation(context, provider),
+        onPressed: () => _showResetConfirmation(context, authProvider, settingsProvider, fitnessProvider),
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
@@ -497,7 +500,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _showResetConfirmation(BuildContext context, FitnessProvider provider) {
+  void _showResetConfirmation(BuildContext context, AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -525,7 +528,7 @@ class HomeScreen extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              provider.resetProgress();
+              fitnessProvider.resetProgress();
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(

@@ -1,6 +1,9 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/fitness_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../providers/fitness_data_provider.dart';
 
 class ConnectedAccountsScreen extends StatefulWidget {
   const ConnectedAccountsScreen({super.key});
@@ -12,14 +15,14 @@ class ConnectedAccountsScreen extends StatefulWidget {
 class _ConnectedAccountsScreenState extends State<ConnectedAccountsScreen> {
   bool _isLoading = false;
 
-  void _handleGoogleLink(FitnessProvider provider) async {
+  void _handleGoogleLink(AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider) async {
     debugPrint("[DEBUG] ConnectedAccountsScreen: _handleGoogleLink clicked.");
-    debugPrint("[DEBUG] Current provider.isGoogleLinked state: ${provider.isGoogleLinked}");
+    debugPrint("[DEBUG] Current authProvider.isGoogleLinked state: ${authProvider.isGoogleLinked}");
     setState(() => _isLoading = true);
     
-    if (provider.isGoogleLinked) {
-      debugPrint("[DEBUG] Calling provider.unlinkGoogleAccount()...");
-      bool success = await provider.unlinkGoogleAccount();
+    if (authProvider.isGoogleLinked) {
+      debugPrint("[DEBUG] Calling authProvider.unlinkGoogleAccount()...");
+      bool success = await authProvider.unlinkGoogleAccount();
       debugPrint("[DEBUG] unlinkGoogleAccount returned: $success");
       if (mounted) {
         if (!success) {
@@ -34,8 +37,8 @@ class _ConnectedAccountsScreenState extends State<ConnectedAccountsScreen> {
         }
       }
     } else {
-      debugPrint("[DEBUG] Calling provider.linkGoogleAccount()...");
-      bool success = await provider.linkGoogleAccount();
+      debugPrint("[DEBUG] Calling authProvider.linkGoogleAccount()...");
+      bool success = await authProvider.linkGoogleAccount();
       debugPrint("[DEBUG] linkGoogleAccount returned: $success");
       if (mounted) {
         if (!success) {
@@ -54,15 +57,15 @@ class _ConnectedAccountsScreenState extends State<ConnectedAccountsScreen> {
     if (mounted) setState(() => _isLoading = false);
   }
 
-  void _handleGoogleFitConnect(FitnessProvider provider) async {
+  void _handleGoogleFitConnect(AuthProvider authProvider, SettingsProvider settingsProvider, FitnessDataProvider fitnessProvider) async {
     debugPrint("[DEBUG] ConnectedAccountsScreen: _handleGoogleFitConnect clicked.");
     setState(() => _isLoading = true);
-    debugPrint("[DEBUG] Calling provider.connectGoogleFit()...");
-    await provider.connectGoogleFit();
+    debugPrint("[DEBUG] Calling fitnessProvider.connectGoogleFit()...");
+    await fitnessProvider.connectGoogleFit();
     debugPrint("[DEBUG] connectGoogleFit completed. Setting isLoading = false.");
     if (mounted) {
       setState(() => _isLoading = false);
-      if (provider.isGoogleFitConnected) {
+      if (fitnessProvider.progress.isGoogleFitConnected) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Google Fit connected successfully!')),
         );
@@ -100,8 +103,8 @@ class _ConnectedAccountsScreenState extends State<ConnectedAccountsScreen> {
           ),
           
           SafeArea(
-            child: Consumer<FitnessProvider>(
-              builder: (context, provider, child) {
+            child: Consumer3<AuthProvider, SettingsProvider, FitnessDataProvider>(
+              builder: (context, authProvider, settingsProvider, fitnessProvider, child) {
                 return Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
@@ -122,8 +125,8 @@ class _ConnectedAccountsScreenState extends State<ConnectedAccountsScreen> {
                         iconColor: Colors.blueAccent,
                         title: 'Google Account',
                         description: 'Sign in faster across devices',
-                        isConnected: provider.isGoogleLinked,
-                        onTap: () => _handleGoogleLink(provider),
+                        isConnected: authProvider.isGoogleLinked,
+                        onTap: () => _handleGoogleLink(authProvider, settingsProvider, fitnessProvider),
                       ),
                       
                       const SizedBox(height: 20),
@@ -134,8 +137,8 @@ class _ConnectedAccountsScreenState extends State<ConnectedAccountsScreen> {
                         iconColor: Colors.greenAccent,
                         title: 'Google Fit',
                         description: 'Sync steps and workouts automatically',
-                        isConnected: provider.isGoogleFitConnected,
-                        onTap: () => _handleGoogleFitConnect(provider),
+                        isConnected: fitnessProvider.progress.isGoogleFitConnected,
+                        onTap: () => _handleGoogleFitConnect(authProvider, settingsProvider, fitnessProvider),
                       ),
                       
                       const Spacer(),
@@ -169,15 +172,15 @@ class _ConnectedAccountsScreenState extends State<ConnectedAccountsScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isConnected ? Colors.cyanAccent.withOpacity(0.5) : Colors.white10,
+          color: isConnected ? Colors.cyanAccent.withValues(alpha: 0.5) : Colors.white10,
           width: 1,
         ),
         boxShadow: isConnected ? [
           BoxShadow(
-            color: Colors.cyanAccent.withOpacity(0.1),
+            color: Colors.cyanAccent.withValues(alpha: 0.1),
             blurRadius: 10,
             spreadRadius: 1,
           )
@@ -195,7 +198,7 @@ class _ConnectedAccountsScreenState extends State<ConnectedAccountsScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.1),
+                    color: iconColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: Icon(icon, color: iconColor, size: 30),
@@ -227,7 +230,7 @@ class _ConnectedAccountsScreenState extends State<ConnectedAccountsScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isConnected ? Colors.cyanAccent.withOpacity(0.2) : Colors.transparent,
+                    color: isConnected ? Colors.cyanAccent.withValues(alpha: 0.2) : Colors.transparent,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isConnected ? Colors.cyanAccent : Colors.white30,
@@ -256,7 +259,7 @@ class GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.cyanAccent.withOpacity(0.05)
+      ..color = Colors.cyanAccent.withValues(alpha: 0.05)
       ..strokeWidth = 1;
 
     for (double i = 0; i < size.width; i += 40) {
