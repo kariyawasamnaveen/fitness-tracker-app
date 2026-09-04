@@ -14,29 +14,29 @@
 
 ---
 
-## 📑 Table of Contents
-- [✨ Features](#-features)
-- [📸 Screenshots](#-screenshots)
-- [🛠 Tech Stack](#-tech-stack)
-- [📂 Architecture](#-architecture)
-- [🚀 Getting Started](#-getting-started)
-- [📄 License](#-license)
+## Table of Contents
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+- [License](#license)
 
 ---
 
-## ✨ Features
+## Features
 
-- 🔐 **Secure Authentication**: Email/password and Google Sign-In powered by Firebase Auth.
-- 📈 **Fitness Tracking**: Log daily workouts, maintain activity streaks, and earn dynamic fitness level badges.
-- 🏃‍♂️ **Google Fit Integration**: Automatically sync step counts and activity data via the Health API.
-- 💎 **Premium Subscriptions**: In-app purchases handled via RevenueCat to unlock advanced analytics and features.
-- ⚙️ **Customizable Profile**: Track weight, height, and goals with metric/imperial unit toggling.
-- 🔔 **Local Notifications**: Daily customizable workout reminders driven by `flutter_local_notifications`.
-- 🛡️ **App Security**: Built-in App Lock feature using local biometrics.
+- **Secure Authentication**: Email/password and Google Sign-In powered by Firebase Auth.
+- **Fitness Tracking**: Log daily workouts, maintain activity streaks, and earn dynamic fitness level badges.
+- **Google Fit Integration**: Automatically sync step counts and activity data via the Health API.
+- **Premium Subscriptions**: In-app purchases handled via RevenueCat to unlock advanced analytics and features.
+- **Customizable Profile**: Track weight, height, and goals with metric/imperial unit toggling.
+- **Local Notifications**: Daily customizable workout reminders driven by `flutter_local_notifications`.
+- **App Security**: Built-in App Lock feature using local biometrics.
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 <table align="center">
   <tr>
@@ -63,7 +63,7 @@
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Technology | Description | Badge |
 | :--- | :--- | :--- |
@@ -75,7 +75,7 @@
 
 ---
 
-## 📂 Architecture
+## Architecture
 
 Built with a decoupled, maintainable **Multi-Provider Architecture**:
 
@@ -91,7 +91,7 @@ lib/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 Follow these instructions to run the project locally on your machine.
 
@@ -128,9 +128,9 @@ flutter run
 
 ---
 
-## 📄 License
+## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 <div align="center">
-  <sub>Developed with ❤️ by <a href="https://github.com/kariyawasamnaveen">Naveen Kariyawasam</a></sub>
+  <sub>Developed by <a href="https://github.com/kariyawasamnaveen">Naveen Kariyawasam</a></sub>
 </div>
