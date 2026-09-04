@@ -7,7 +7,7 @@
   [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)](https://flutter.dev/)
   [![Firebase](https://img.shields.io/badge/Firebase-Integrated-FFCA28?logo=firebase)](https://firebase.google.com/)
   [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-  [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)]()
+  ![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)
 </div>
 
 > A premium, modern Flutter fitness tracking application designed to help users log workouts, maintain daily streaks, and visualize their progress with a highly responsive user experience.
