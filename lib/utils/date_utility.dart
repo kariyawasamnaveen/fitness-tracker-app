@@ -1,3 +1,4 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 class DateUtility {
   /// Calculates the number of full days passed since the [startDate].
   static int getDaysPassed(DateTime startDate) {

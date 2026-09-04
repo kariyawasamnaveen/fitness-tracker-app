@@ -1,3 +1,4 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 class LegalTexts {
   static const String privacyPolicy = """
 Privacy Policy
