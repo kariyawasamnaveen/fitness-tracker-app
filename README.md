@@ -15,8 +15,9 @@
 ---
 
 ## Table of Contents
-- [Features](#features)
+- [Demo Video](#demo-video)
 - [Screenshots](#screenshots)
+- [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
 - [Getting Started](#getting-started)
@@ -24,15 +25,11 @@
 
 ---
 
-## Features
+## Demo Video
 
-- **Secure Authentication**: Email/password and Google Sign-In powered by Firebase Auth.
-- **Fitness Tracking**: Log daily workouts, maintain activity streaks, and earn dynamic fitness level badges.
-- **Google Fit Integration**: Automatically sync step counts and activity data via the Health API.
-- **Premium Subscriptions**: In-app purchases handled via RevenueCat to unlock advanced analytics and features.
-- **Customizable Profile**: Track weight, height, and goals with metric/imperial unit toggling.
-- **Local Notifications**: Daily customizable workout reminders driven by `flutter_local_notifications`.
-- **App Security**: Built-in App Lock feature using local biometrics.
+[![YouTube](https://img.shields.io/badge/YouTube-Watch_Demo-red?logo=youtube)](https://youtube.com/shorts/jaQgziC9t8k)
+
+*Click the badge above to watch the full app demo on YouTube.*
 
 ---
 
@@ -63,6 +60,18 @@
 
 ---
 
+## Features
+
+- **Secure Authentication**: Email/password and Google Sign-In powered by Firebase Authentication.
+- **Fitness Tracking**: Log daily workouts, maintain activity streaks, and earn dynamic fitness level badges.
+- **Google Fit Integration**: Automatically sync step counts and activity data via the Health API.
+- **Premium Subscriptions**: In-app purchases handled seamlessly via RevenueCat to unlock advanced analytics and features.
+- **Customizable Profile**: Track weight, height, and goals with metric/imperial unit toggling.
+- **Local Notifications**: Daily customizable workout reminders driven by `flutter_local_notifications`.
+- **App Security**: Built-in App Lock feature utilizing local biometrics.
+
+---
+
 ## Tech Stack
 
 | Technology | Description | Badge |
@@ -77,7 +86,7 @@
 
 ## Architecture
 
-Built with a decoupled, maintainable **Multi-Provider Architecture**:
+Built with a decoupled, highly maintainable **Multi-Provider Architecture**:
 
 ```text
 lib/
