@@ -23,7 +23,9 @@ class AuthProvider with ChangeNotifier {
   bool get isAuthenticated => _isAuthenticated;
   bool get isInitialized => _isInitialized;
 
-  AuthProvider() {
+  final FirebaseAuth _auth;
+
+  AuthProvider({FirebaseAuth? auth}) : _auth = auth ?? FirebaseAuth.instance {
     _init();
   }
 
@@ -32,7 +34,7 @@ class AuthProvider with ChangeNotifier {
     _isAppLockEnabled = prefs.getBool('app_lock_enabled') ?? false;
     _isAuthenticated = !_isAppLockEnabled;
 
-    FirebaseAuth.instance.authStateChanges().listen((User? user) async {
+    _auth.authStateChanges().listen((User? user) async {
       if (user == null) {
         _isLoggedIn = false;
         _userName = "ATHLETE";
@@ -47,7 +49,7 @@ class AuthProvider with ChangeNotifier {
       }
     });
 
-    final initialUser = await FirebaseAuth.instance.authStateChanges().first;
+    final initialUser = await _auth.authStateChanges().first;
     if (initialUser != null) {
       _isLoggedIn = true;
       _isGoogleLinked = initialUser.providerData.any((userInfo) => userInfo.providerId == 'google.com');
@@ -72,7 +74,7 @@ class AuthProvider with ChangeNotifier {
 
   Future<String?> login(String email, String password) async {
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -95,7 +97,7 @@ class AuthProvider with ChangeNotifier {
         idToken: googleAuth.idToken,
       );
 
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      UserCredential userCredential = await _auth.signInWithCredential(credential);
       _isGoogleLinked = true;
       
       if (userCredential.user?.displayName != null) {
@@ -112,7 +114,7 @@ class AuthProvider with ChangeNotifier {
 
   Future<bool> register(String name, String email, String password) async {
     try {
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -126,7 +128,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await FirebaseAuth.instance.signOut();
+    await _auth.signOut();
     try {
       await GoogleSignIn().signOut();
     } catch (_) {}
@@ -134,7 +136,7 @@ class AuthProvider with ChangeNotifier {
 
   Future<String?> deleteAccount() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
+      final user = _auth.currentUser;
       if (user != null) {
         // Just delete auth, other providers will handle their own cleanups if needed
         await user.delete();
@@ -165,7 +167,7 @@ class AuthProvider with ChangeNotifier {
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      final user = FirebaseAuth.instance.currentUser;
+      final user = _auth.currentUser;
       if (user != null) {
         await user.linkWithCredential(credential);
         _isGoogleLinked = true;
@@ -180,7 +182,7 @@ class AuthProvider with ChangeNotifier {
 
   Future<bool> unlinkGoogleAccount() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
+      final user = _auth.currentUser;
       if (user != null) {
         await user.unlink('google.com');
         _isGoogleLinked = false;

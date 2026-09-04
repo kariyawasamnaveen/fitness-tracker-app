@@ -17,12 +17,17 @@ class FitnessDataProvider with ChangeNotifier {
   bool get isInitialized => _isInitialized;
   int get todaySteps => _todaySteps;
 
-  FitnessDataProvider() {
+  final FirebaseAuth _auth;
+  final FirebaseFirestore _firestore;
+
+  FitnessDataProvider({FirebaseAuth? auth, FirebaseFirestore? firestore})
+      : _auth = auth ?? FirebaseAuth.instance,
+        _firestore = firestore ?? FirebaseFirestore.instance {
     _init();
   }
 
   Future<void> _init() async {
-    FirebaseAuth.instance.authStateChanges().listen((User? user) async {
+    _auth.authStateChanges().listen((User? user) async {
       if (user == null) {
         _progress = FitnessProgress(startDate: DateTime.now());
         notifyListeners();
@@ -31,7 +36,7 @@ class FitnessDataProvider with ChangeNotifier {
       }
     });
 
-    final initialUser = await FirebaseAuth.instance.authStateChanges().first;
+    final initialUser = await _auth.authStateChanges().first;
     if (initialUser != null) {
       await _fetchFromCloud(initialUser);
     }
@@ -42,7 +47,7 @@ class FitnessDataProvider with ChangeNotifier {
 
   Future<void> _fetchFromCloud(User user) async {
     try {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final doc = await _firestore.collection('users').doc(user.uid).get();
       if (doc.exists && doc.data() != null) {
         final data = doc.data()!;
         _progress = FitnessProgress.fromJson(data);
@@ -59,10 +64,10 @@ class FitnessDataProvider with ChangeNotifier {
   }
 
   Future<void> _syncToCloud() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = _auth.currentUser;
     if (user != null) {
       try {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
+        await _firestore.collection('users').doc(user.uid).set(
           _progress.toJson(), 
           SetOptions(merge: true)
         );
